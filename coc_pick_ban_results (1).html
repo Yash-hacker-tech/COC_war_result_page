@@ -1,0 +1,1631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Clash of Clans Pick & Ban Match Result</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-dark: #050608;
+      --bg-card: #0f1117;
+      --bg-card-soft: #151824;
+      --accent-gold: #f5d67b;
+      --accent-gold-soft: #f3e1a1;
+      --accent-gold-dark: #cba44a;
+      --text-main: #f7f7f9;
+      --text-muted: #a0a4b8;
+      --danger: #ff4b6e;
+      --success: #35d07f;
+      --shadow-strong: 0 0 35px rgba(245, 214, 123, 0.25);
+      --radius-lg: 18px;
+      --radius-md: 12px;
+      --radius-sm: 8px;
+      --transition-fast: 0.18s ease-out;
+      --transition-med: 0.25s ease-out;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: "Poppins", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(245, 214, 123, 0.18), transparent 55%),
+        radial-gradient(circle at bottom right, rgba(245, 214, 123, 0.12), transparent 55%),
+        linear-gradient(145deg, #020307, #050608 40%, #050508 80%);
+      color: var(--text-main);
+      display: flex;
+      justify-content: center;
+      padding: 24px 12px 40px;
+    }
+
+    .page {
+      width: 100%;
+      max-width: 1220px;
+      background:
+        linear-gradient(135deg, rgba(245, 214, 123, 0.12), transparent 55%),
+        radial-gradient(circle at top, rgba(255, 255, 255, 0.02), transparent 60%),
+        #050608;
+      border-radius: 26px;
+      border: 1px solid rgba(245, 214, 123, 0.22);
+      box-shadow: 0 32px 90px rgba(0, 0, 0, 0.9);
+      padding: 22px 22px 26px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .page::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 15% 0%, rgba(245, 214, 123, 0.06), transparent 55%),
+        radial-gradient(circle at 85% 100%, rgba(255, 255, 255, 0.03), transparent 60%);
+      opacity: 0.9;
+      pointer-events: none;
+    }
+
+    .page-inner {
+      position: relative;
+      z-index: 1;
+    }
+
+    .main-header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .title-group {
+      flex: 2 1 260px;
+    }
+
+    #tournament-title {
+      font-family: "Orbitron", system-ui, sans-serif;
+      font-size: clamp(1.75rem, 2.5vw, 2.3rem);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      text-align: left;
+      padding: 6px 10px;
+      border-radius: 12px;
+      outline: none;
+      border: 1px dashed rgba(245, 214, 123, 0.4);
+      background: radial-gradient(circle at top, rgba(15, 17, 23, 0.95), rgba(10, 12, 18, 0.95));
+      cursor: text;
+      transition: box-shadow var(--transition-med), border-color var(--transition-med), background var(--transition-med);
+    }
+
+    #tournament-title:focus-visible {
+      box-shadow: var(--shadow-strong);
+      border-color: var(--accent-gold);
+      background: radial-gradient(circle at top, rgba(20, 22, 30, 0.98), rgba(12, 14, 21, 0.98));
+    }
+
+    .subtitle {
+      margin-top: 4px;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: var(--accent-gold-soft);
+      opacity: 0.9;
+    }
+
+    .header-meta {
+      flex: 1 1 220px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .badge-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 130px;
+    }
+
+    .label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: var(--text-muted);
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, rgba(15, 17, 23, 0.9), rgba(21, 23, 31, 0.9));
+      border: 1px solid rgba(245, 214, 123, 0.4);
+      box-shadow: 0 0 16px rgba(0, 0, 0, 0.7);
+    }
+
+    .status-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      background: var(--accent-gold);
+    }
+
+    #match-status {
+      background: transparent;
+      border: none;
+      color: var(--text-main);
+      font-size: 0.8rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .status-pill.status-pending {
+      border-color: rgba(245, 214, 123, 0.4);
+    }
+
+    .status-pill.status-ongoing {
+      border-color: rgba(53, 208, 127, 0.8);
+      box-shadow: 0 0 20px rgba(53, 208, 127, 0.45);
+    }
+
+    .status-pill.status-completed {
+      border-color: rgba(245, 214, 123, 0.95);
+      box-shadow: var(--shadow-strong);
+    }
+
+    .timestamp-input {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 160px;
+    }
+
+    #timestamp {
+      background: radial-gradient(circle at top left, #1e2130, #131620);
+      border-radius: 999px;
+      border: 1px solid rgba(245, 214, 123, 0.4);
+      padding: 6px 10px;
+      color: var(--text-main);
+      font-size: 0.78rem;
+      outline: none;
+      box-shadow: 0 0 18px rgba(0, 0, 0, 0.7);
+    }
+
+    #timestamp::placeholder {
+      color: var(--text-muted);
+    }
+
+    main {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .match-stats-section {
+      display: grid;
+      grid-template-columns: 1.2fr 1.6fr;
+      gap: 16px;
+      align-items: stretch;
+    }
+
+    .winner-indicator {
+      background:
+        linear-gradient(135deg, rgba(17, 19, 28, 0.95), rgba(14, 15, 23, 0.98)) padding-box,
+        linear-gradient(135deg, rgba(245, 214, 123, 0.9), rgba(203, 164, 74, 0.95)) border-box;
+      border-radius: var(--radius-lg);
+      border: 1px solid transparent;
+      padding: 10px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.85);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .winner-indicator::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top left, rgba(255, 255, 255, 0.08), transparent 60%);
+      opacity: 0.9;
+      pointer-events: none;
+    }
+
+    .winner-indicator-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      z-index: 1;
+    }
+
+    .winner-title {
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: var(--accent-gold-soft);
+    }
+
+    .winner-label {
+      font-family: "Orbitron", system-ui, sans-serif;
+      font-size: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--text-main);
+      white-space: nowrap;
+    }
+
+    .winner-sub {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    .winner-bar-container {
+      position: relative;
+      margin-top: 4px;
+      height: 7px;
+      border-radius: 999px;
+      background: rgba(8, 9, 14, 0.95);
+      overflow: hidden;
+      z-index: 1;
+    }
+
+    .winner-bar {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      width: 50%;
+      background: linear-gradient(90deg, rgba(245, 214, 123, 0.15), rgba(245, 214, 123, 0.95));
+      box-shadow: 0 0 16px rgba(245, 214, 123, 0.7);
+      transition: width var(--transition-med);
+    }
+
+    .winner-legend {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 4px;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      z-index: 1;
+      position: relative;
+    }
+
+    .winner-legend span strong {
+      color: var(--accent-gold-soft);
+      font-weight: 600;
+    }
+
+    .stats-card {
+      background:
+        linear-gradient(135deg, rgba(15, 17, 23, 0.97), rgba(8, 9, 14, 0.97)) padding-box,
+        linear-gradient(145deg, rgba(245, 214, 123, 0.8), rgba(15, 17, 23, 0.9)) border-box;
+      border-radius: var(--radius-lg);
+      border: 1px solid transparent;
+      padding: 10px 14px;
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.9);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .stats-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2px;
+    }
+
+    .stats-title {
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: var(--text-muted);
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1.2fr repeat(2, 1fr);
+      gap: 5px 8px;
+      align-items: center;
+      font-size: 0.8rem;
+    }
+
+    .stats-label-cell {
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      font-size: 0.7rem;
+    }
+
+    .stats-team-label {
+      font-family: "Orbitron", system-ui, sans-serif;
+      text-align: center;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: var(--accent-gold-soft);
+    }
+
+    .stats-input {
+      width: 100%;
+      padding: 4px 6px;
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(245, 214, 123, 0.5);
+      background: radial-gradient(circle at top, #191c27, #10121a);
+      color: var(--text-main);
+      font-size: 0.78rem;
+      outline: none;
+      text-align: center;
+      box-shadow: 0 0 12px rgba(0, 0, 0, 0.7);
+    }
+
+    .stats-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .stats-input:disabled {
+      background: radial-gradient(circle at top, #141621, #0d0f15);
+      color: var(--text-muted);
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+
+    .teams-section {
+      margin-top: 8px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      align-items: stretch;
+    }
+
+    .team-card {
+      position: relative;
+      background:
+        linear-gradient(145deg, rgba(15, 17, 23, 0.98), rgba(9, 10, 16, 0.98)) padding-box,
+        linear-gradient(145deg, rgba(245, 214, 123, 0.65), rgba(15, 17, 23, 0.98)) border-box;
+      border-radius: 20px;
+      border: 1px solid transparent;
+      padding: 12px 12px 10px;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.9);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast);
+      overflow: hidden;
+      backdrop-filter: blur(14px);
+    }
+
+    .team-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top center, rgba(245, 214, 123, 0.08), transparent 60%);
+      opacity: 0;
+      transition: opacity var(--transition-med);
+      pointer-events: none;
+    }
+
+    .team-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 25px 55px rgba(0, 0, 0, 0.95);
+      border-color: rgba(245, 214, 123, 0.9);
+    }
+
+    .team-card:hover::before {
+      opacity: 1;
+    }
+
+    .team-card.winner {
+      border-color: rgba(245, 214, 123, 0.98);
+      box-shadow: 0 0 26px rgba(245, 214, 123, 0.85);
+    }
+
+    .team-card.loser {
+      border-color: rgba(90, 94, 110, 0.9);
+      opacity: 0.95;
+    }
+
+    .team-card.tie {
+      border-color: rgba(245, 214, 123, 0.6);
+    }
+
+    .team-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .team-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .logo-placeholder {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      border: 1px dashed rgba(245, 214, 123, 0.6);
+      background: radial-gradient(circle at top, #222433, #141621);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.6rem;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      letter-spacing: 0.14em;
+    }
+
+    .team-name-input {
+      flex: 1;
+      background: radial-gradient(circle at top, #191c27, #10121a);
+      border-radius: 999px;
+      border: 1px solid rgba(245, 214, 123, 0.8);
+      padding: 7px 10px;
+      color: var(--text-main);
+      font-family: "Orbitron", system-ui, sans-serif;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      outline: none;
+      box-shadow: 0 0 16px rgba(0, 0, 0, 0.8);
+    }
+
+    .team-name-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .players-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .players-count-input {
+      width: 56px;
+      padding: 4px 6px;
+      text-align: center;
+      border-radius: 999px;
+      border: 1px solid rgba(245, 214, 123, 0.6);
+      background: radial-gradient(circle at top, #191c27, #10121a);
+      color: var(--text-main);
+      font-size: 0.75rem;
+      outline: none;
+      box-shadow: 0 0 14px rgba(0, 0, 0, 0.8);
+    }
+
+    .players-buttons {
+      display: flex;
+      gap: 4px;
+    }
+
+    .players-buttons button {
+      width: 22px;
+      height: 22px;
+      border-radius: 999px;
+      border: none;
+      background: radial-gradient(circle at top, rgba(245, 214, 123, 0.9), rgba(203, 164, 74, 0.95));
+      color: #050608;
+      font-size: 0.8rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 0 14px rgba(245, 214, 123, 0.8);
+      transition: transform var(--transition-fast), box-shadow var(--transition-fast), filter var(--transition-fast);
+    }
+
+    .players-buttons button:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.06);
+      box-shadow: 0 0 18px rgba(245, 214, 123, 0.9);
+    }
+
+    .players-buttons button:active {
+      transform: translateY(0);
+      box-shadow: 0 0 10px rgba(245, 214, 123, 0.8);
+    }
+
+    .team-subtitle {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .player-list {
+      margin-top: 8px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+      gap: 8px;
+    }
+
+    .player-card {
+      position: relative;
+      background:
+        linear-gradient(145deg, rgba(21, 23, 33, 0.98), rgba(11, 12, 18, 0.98)) padding-box,
+        linear-gradient(145deg, rgba(245, 214, 123, 0.6), rgba(21, 23, 33, 0.98)) border-box;
+      border-radius: 14px;
+      border: 1px solid transparent;
+      padding: 6px 8px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      box-shadow: 0 12px 26px rgba(0, 0, 0, 0.9);
+      transition: transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast);
+    }
+
+    .player-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 16px 32px rgba(0, 0, 0, 0.95);
+      border-color: rgba(245, 214, 123, 0.95);
+    }
+
+    .player-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .player-index {
+      font-size: 0.7rem;
+      color: var(--accent-gold-soft);
+      background: rgba(5, 6, 8, 0.9);
+      border-radius: 999px;
+      padding: 2px 6px;
+      border: 1px solid rgba(245, 214, 123, 0.7);
+    }
+
+    .player-name-input {
+      flex: 1;
+      background: radial-gradient(circle at top, #1c1f2b, #10121a);
+      border-radius: 999px;
+      border: 1px solid rgba(245, 214, 123, 0.6);
+      padding: 3px 7px;
+      color: var(--text-main);
+      font-size: 0.76rem;
+      outline: none;
+    }
+
+    .player-name-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .player-results-section {
+      margin-top: 2px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .stars-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 2px;
+    }
+
+    .star-btn {
+      flex: 1;
+      padding: 4px 2px;
+      border-radius: 4px;
+      border: 1px solid rgba(245, 214, 123, 0.6);
+      background: radial-gradient(circle at top, #202330, #141621);
+      color: var(--accent-gold-soft);
+      font-size: 0.65rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+
+    .star-btn:hover {
+      background: radial-gradient(circle at top, #2a2f3d, #1a1d28);
+      border-color: rgba(245, 214, 123, 0.9);
+    }
+
+    .star-btn.filled {
+      background: radial-gradient(circle at top, rgba(245, 214, 123, 0.9), rgba(203, 164, 74, 0.95));
+      color: #050608;
+      border-color: rgba(245, 214, 123, 0.98);
+      box-shadow: 0 0 10px rgba(245, 214, 123, 0.8);
+    }
+
+    .percentage-row {
+      display: flex;
+      gap: 2px;
+      align-items: center;
+    }
+
+    .percentage-label {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      min-width: 18px;
+    }
+
+    .percentage-input {
+      flex: 1;
+      padding: 2px 4px;
+      border-radius: 4px;
+      border: 1px solid rgba(245, 214, 123, 0.5);
+      background: radial-gradient(circle at top, #202330, #141621);
+      color: var(--text-main);
+      font-size: 0.65rem;
+      text-align: center;
+      outline: none;
+    }
+
+    .percentage-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .tabs-container {
+      margin-top: 10px;
+      display: flex;
+      gap: 4px;
+      border-bottom: 1px solid rgba(245, 214, 123, 0.3);
+      padding-bottom: 6px;
+    }
+
+    .tab-btn {
+      padding: 4px 8px;
+      border-radius: 6px 6px 0 0;
+      border: 1px solid rgba(245, 214, 123, 0.4);
+      border-bottom: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+
+    .tab-btn:hover {
+      color: var(--accent-gold-soft);
+      border-color: rgba(245, 214, 123, 0.6);
+    }
+
+    .tab-btn.active {
+      background: radial-gradient(circle at top, rgba(245, 214, 123, 0.15), rgba(245, 214, 123, 0.08));
+      color: var(--accent-gold);
+      border-color: rgba(245, 214, 123, 0.8);
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .stats-breakdown {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px 6px;
+      font-size: 0.7rem;
+      margin-top: 4px;
+    }
+
+    .breakdown-item {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+
+    .breakdown-label {
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+
+    .breakdown-value {
+      color: var(--accent-gold-soft);
+      font-weight: 600;
+      font-size: 0.75rem;
+    }
+
+    .pick-ban-section {
+      margin-top: 6px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .pick-ban-card {
+      background:
+        linear-gradient(135deg, rgba(15, 17, 23, 0.97), rgba(9, 10, 16, 0.98)) padding-box,
+        linear-gradient(135deg, rgba(245, 214, 123, 0.7), rgba(15, 17, 23, 0.95)) border-box;
+      border-radius: var(--radius-lg);
+      border: 1px solid transparent;
+      padding: 10px 12px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.95);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .pick-ban-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .pick-ban-title {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: var(--accent-gold-soft);
+    }
+
+    .pick-ban-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px 10px;
+      margin-top: 4px;
+      font-size: 0.75rem;
+    }
+
+    .pick-ban-column-title {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--text-muted);
+      margin-bottom: 2px;
+    }
+
+    .pick-ban-field-group {
+      margin-bottom: 4px;
+    }
+
+    .pick-ban-input {
+      margin-top: 2px;
+      width: 100%;
+      background: radial-gradient(circle at top, #1c1f2b, #10121a);
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(245, 214, 123, 0.5);
+      padding: 3px 6px;
+      color: var(--text-main);
+      font-size: 0.72rem;
+      outline: none;
+    }
+
+    .pick-ban-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .notes-section {
+      margin-top: 10px;
+      background:
+        linear-gradient(135deg, rgba(15, 17, 23, 0.97), rgba(9, 10, 16, 0.98)) padding-box,
+        linear-gradient(135deg, rgba(245, 214, 123, 0.65), rgba(15, 17, 23, 0.96)) border-box;
+      border-radius: var(--radius-lg);
+      border: 1px solid transparent;
+      padding: 10px 12px 8px;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.95);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .notes-title {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: var(--accent-gold-soft);
+    }
+
+    .notes-helper {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+
+    #match-notes {
+      margin-top: 2px;
+      width: 100%;
+      min-height: 56px;
+      max-height: 140px;
+      resize: vertical;
+      background: radial-gradient(circle at top, #1c1f2b, #10121a);
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(245, 214, 123, 0.6);
+      padding: 6px 8px;
+      color: var(--text-main);
+      font-size: 0.78rem;
+      outline: none;
+    }
+
+    footer {
+      margin-top: 14px;
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 6px;
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--text-muted);
+      border-top: 1px solid rgba(245, 214, 123, 0.35);
+      padding-top: 8px;
+    }
+
+    footer span strong {
+      color: var(--accent-gold-soft);
+      font-weight: 600;
+    }
+
+    @media (max-width: 960px) {
+      .match-stats-section {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .teams-section {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .header-meta {
+        justify-content: flex-start;
+      }
+    }
+
+    @media (max-width: 640px) {
+      body {
+        padding: 12px 6px 20px;
+      }
+
+      .page {
+        padding: 16px 14px 18px;
+      }
+
+      .player-list {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .pick-ban-section {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .main-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="page-inner">
+      <header class="main-header">
+        <div class="title-group">
+          <h1 id="tournament-title" contenteditable="true">TITLE WILL BE ADDED HERE</h1>
+          <p class="subtitle">Pick &amp; Ban Tournament Results</p>
+        </div>
+        <div class="header-meta">
+          <div class="badge-group">
+            <span class="label">Match Status</span>
+            <div class="status-pill status-pending" id="status-pill">
+              <span class="status-dot" id="status-dot"></span>
+              <select id="match-status">
+                <option value="pending">Pending</option>
+                <option value="ongoing">Ongoing</option>
+                <option value="completed">Completed</option>
+              </select>
+            </div>
+          </div>
+          <div class="timestamp-input">
+            <span class="label">Timestamp</span>
+            <input type="datetime-local" id="timestamp" />
+          </div>
+        </div>
+      </header>
+
+      <main>
+        <section class="match-stats-section">
+          <div class="winner-indicator">
+            <div class="winner-indicator-header">
+              <div>
+                <div class="winner-title">Live Winner Highlight</div>
+                <div class="winner-sub">Determined by Effective Stars &gt; Destruction %</div>
+              </div>
+              <div class="winner-label" id="winner-label">Awaiting Input</div>
+            </div>
+            <div class="winner-bar-container">
+              <div class="winner-bar" id="winner-bar"></div>
+            </div>
+            <div class="winner-legend">
+              <span><strong id="legend-team-a">Team A</strong> score</span>
+              <span><strong id="legend-team-b">Team B</strong> score</span>
+            </div>
+          </div>
+
+          <div class="stats-card">
+            <div class="stats-header">
+              <div class="stats-title">Match Stats</div>
+            </div>
+            <div class="stats-grid">
+              <span></span>
+              <span class="stats-team-label" id="stats-team-a-label">Team A</span>
+              <span class="stats-team-label" id="stats-team-b-label">Team B</span>
+
+              <span class="stats-label-cell">Total Stars</span>
+              <input id="total-stars-A" type="number" min="0" class="stats-input" placeholder="0" disabled />
+              <input id="total-stars-B" type="number" min="0" class="stats-input" placeholder="0" disabled />
+
+              <span class="stats-label-cell">Total %</span>
+              <input id="total-destruction-A" type="number" min="0" max="100" class="stats-input" placeholder="0" disabled />
+              <input id="total-destruction-B" type="number" min="0" max="100" class="stats-input" placeholder="0" disabled />
+
+              <span class="stats-label-cell">Penalty %</span>
+              <input id="penalty-pct-A" type="number" min="0" max="100" class="stats-input" placeholder="0" />
+              <input id="penalty-pct-B" type="number" min="0" max="100" class="stats-input" placeholder="0" />
+
+              <span class="stats-label-cell">Effective Stars</span>
+              <input id="effective-stars-A" type="number" min="0" class="stats-input" placeholder="0" disabled />
+              <input id="effective-stars-B" type="number" min="0" class="stats-input" placeholder="0" disabled />
+            </div>
+          </div>
+        </section>
+
+        <section class="teams-section">
+          <div class="team-card" id="team-a-card" data-team="A">
+            <div class="team-header-row">
+              <div class="team-info">
+                <div class="logo-placeholder">Logo</div>
+                <input id="team-a-name" class="team-name-input" type="text" value="Team A" placeholder="Team A" />
+              </div>
+              <div class="players-meta">
+                <div>
+                  <span class="team-subtitle">Players</span>
+                  <input id="team-a-count" class="players-count-input" type="number" min="1" max="30" value="5" />
+                </div>
+                <div class="players-buttons">
+                  <button type="button" data-team="A" data-delta="-1">-</button>
+                  <button type="button" data-team="A" data-delta="1">+</button>
+                </div>
+              </div>
+            </div>
+            <div class="team-subtitle">Stars &amp; Percentage per Player</div>
+            <div class="player-list" data-team="A"></div>
+          </div>
+
+          <div class="team-card" id="team-b-card" data-team="B">
+            <div class="team-header-row">
+              <div class="team-info">
+                <div class="logo-placeholder">Logo</div>
+                <input id="team-b-name" class="team-name-input" type="text" value="Team B" placeholder="Team B" />
+              </div>
+              <div class="players-meta">
+                <div>
+                  <span class="team-subtitle">Players</span>
+                  <input id="team-b-count" class="players-count-input" type="number" min="1" max="30" value="5" />
+                </div>
+                <div class="players-buttons">
+                  <button type="button" data-team="B" data-delta="-1">-</button>
+                  <button type="button" data-team="B" data-delta="1">+</button>
+                </div>
+              </div>
+            </div>
+            <div class="team-subtitle">Stars &amp; Percentage per Player</div>
+            <div class="player-list" data-team="B"></div>
+          </div>
+        </section>
+
+        <section class="pick-ban-section">
+          <div class="pick-ban-card" data-team="A">
+            <div class="pick-ban-header">
+              <div>
+                <div class="pick-ban-title" id="pb-team-a-title">Team A Picks &amp; Bans</div>
+              </div>
+            </div>
+            <div class="pick-ban-grid">
+              <div>
+                <div class="pick-ban-column-title">Picks</div>
+                <div class="pick-ban-field-group">
+                  <input id="a-picks-1" class="pick-ban-input" type="text" placeholder="Pick 1" />
+                </div>
+                <div class="pick-ban-field-group">
+                  <input id="a-picks-2" class="pick-ban-input" type="text" placeholder="Pick 2" />
+                </div>
+                <div class="pick-ban-field-group">
+                  <input id="a-picks-3" class="pick-ban-input" type="text" placeholder="Pick 3" />
+                </div>
+              </div>
+              <div>
+                <div class="pick-ban-column-title">Bans</div>
+                <div class="pick-ban-field-group">
+                  <input id="a-bans-1" class="pick-ban-input" type="text" placeholder="Ban 1" />
+                </div>
+                <div class="pick-ban-field-group">
+                  <input id="a-bans-2" class="pick-ban-input" type="text" placeholder="Ban 2" />
+                </div>
+                <div class="pick-ban-field-group">
+                  <input id="a-bans-3" class="pick-ban-input" type="text" placeholder="Ban 3" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="pick-ban-card" data-team="B">
+            <div class="pick-ban-header">
+              <div>
+                <div class="pick-ban-title" id="pb-team-b-title">Team B Picks &amp; Bans</div>
+              </div>
+            </div>
+            <div class="pick-ban-grid">
+              <div>
+                <div class="pick-ban-column-title">Picks</div>
+                <div class="pick-ban-field-group">
+                  <input id="b-picks-1" class="pick-ban-input" type="text" placeholder="Pick 1" />
+                </div>
+                <div class="pick-ban-field-group">
+                  <input id="b-picks-2" class="pick-ban-input" type="text" placeholder="Pick 2" />
+                </div>
+                <div class="pick-ban-field-group">
+                  <input id="b-picks-3" class="pick-ban-input" type="text" placeholder="Pick 3" />
+                </div>
+              </div>
+              <div>
+                <div class="pick-ban-column-title">Bans</div>
+                <div class="pick-ban-field-group">
+                  <input id="b-bans-1" class="pick-ban-input" type="text" placeholder="Ban 1" />
+                </div>
+                <div class="pick-ban-field-group">
+                  <input id="b-bans-2" class="pick-ban-input" type="text" placeholder="Ban 2" />
+                </div>
+                <div class="pick-ban-field-group">
+                  <input id="b-bans-3" class="pick-ban-input" type="text" placeholder="Ban 3" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="notes-section">
+          <div class="notes-title">Match Summary / Notes</div>
+          <div class="notes-helper">Use this space for clutch attacks, fails, and overall recap.</div>
+          <textarea id="match-notes" placeholder="Example: Team A secures win on higher destruction after star tie."></textarea>
+        </section>
+      </main>
+
+      <footer>
+        <span><strong>Tournament Mode:</strong> Pick &amp; Ban</span>
+        <span>Designed for competitive Clash of Clans matches</span>
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const STORAGE_KEY = "coc_pick_ban_result_v2";
+
+      function qs(selector, root) {
+        return (root || document).querySelector(selector);
+      }
+
+      function qsa(selector, root) {
+        return Array.from((root || document).querySelectorAll(selector));
+      }
+
+      function buildPlayerCards(teamKey, count, initialPlayers) {
+        const list = qs('.player-list[data-team="' + teamKey + '"]');
+        if (!list) return;
+        list.innerHTML = "";
+
+        const playersData = Array.isArray(initialPlayers) ? initialPlayers : [];
+
+        for (let i = 0; i < count; i++) {
+          const existing = playersData[i] || {};
+          const card = document.createElement("div");
+          card.className = "player-card";
+
+          const header = document.createElement("div");
+          header.className = "player-header";
+
+          const indexSpan = document.createElement("span");
+          indexSpan.className = "player-index";
+          indexSpan.textContent = "#" + (i + 1);
+
+          const nameInput = document.createElement("input");
+          nameInput.type = "text";
+          nameInput.className = "player-name-input";
+          nameInput.placeholder = "Player name";
+          nameInput.value = existing.name || "";
+
+          header.appendChild(indexSpan);
+          header.appendChild(nameInput);
+
+          const resultsSection = document.createElement("div");
+          resultsSection.className = "player-results-section";
+
+          // Stars row (toggle-style stars)
+          const starsRow = document.createElement("div");
+          starsRow.className = "stars-row";
+          const starValue = existing.stars || 0;
+
+          for (let s = 1; s <= 3; s++) {
+            const starBtn = document.createElement("button");
+            starBtn.type = "button";
+            starBtn.className = "star-btn";
+            starBtn.dataset.value = s;
+            starBtn.textContent = "★";
+            if (starValue >= s) {
+              starBtn.classList.add("filled");
+            }
+            starBtn.addEventListener("click", function () {
+              const clickedVal = parseInt(starBtn.dataset.value, 10) || 0;
+              const filledStars = qsa(".star-btn.filled", card).length;
+              let newValue = clickedVal;
+              if (filledStars === clickedVal) {
+                newValue = 0; // toggle back to 0 stars
+              }
+              const starButtons = qsa(".star-btn", card);
+              starButtons.forEach(function (btn, idx) {
+                if (idx < newValue) {
+                  btn.classList.add("filled");
+                } else {
+                  btn.classList.remove("filled");
+                }
+              });
+              saveState();
+            });
+            starsRow.appendChild(starBtn);
+          }
+
+          // Percentage row
+          const percentageRow = document.createElement("div");
+          percentageRow.className = "percentage-row";
+
+          const percentLabel = document.createElement("span");
+          percentLabel.className = "percentage-label";
+          percentLabel.textContent = "%";
+
+          const percentInput = document.createElement("input");
+          percentInput.type = "number";
+          percentInput.className = "percentage-input";
+          percentInput.placeholder = "0";
+          percentInput.min = "0";
+          percentInput.max = "100";
+          percentInput.value = existing.percentage || "";
+
+          percentageRow.appendChild(percentLabel);
+          percentageRow.appendChild(percentInput);
+
+          resultsSection.appendChild(starsRow);
+          resultsSection.appendChild(percentageRow);
+
+          card.appendChild(header);
+          card.appendChild(resultsSection);
+          list.appendChild(card);
+
+          percentInput.addEventListener("input", function () {
+            saveState();
+          });
+
+          nameInput.addEventListener("input", function () {
+            saveState();
+          });
+        }
+      }
+
+      function collectTeamData(teamKey) {
+        const prefix = teamKey.toLowerCase();
+        const teamNameInput = qs('#team-' + prefix + '-name');
+        const countInput = qs('#team-' + prefix + '-count');
+
+        const name = teamNameInput ? teamNameInput.value : "";
+        const count = countInput ? parseInt(countInput.value, 10) || 0 : 0;
+
+        const list = qs('.player-list[data-team="' + teamKey + '"]');
+        const players = [];
+
+        if (list) {
+          qsa(".player-card", list).forEach(function (card) {
+            const playerNameInput = qs(".player-name-input", card);
+            const percentInput = qs(".percentage-input", card);
+
+            const stars = qsa(".star-btn.filled", card).length;
+            const percentage = percentInput ? parseFloat(percentInput.value || "0") || 0 : 0;
+
+            players.push({
+              name: playerNameInput ? playerNameInput.value : "",
+              stars: stars,
+              percentage: percentage,
+            });
+          });
+        }
+
+        const penaltyPctInput = qs('#penalty-pct-' + teamKey);
+        const penaltyPct = penaltyPctInput ? parseFloat(penaltyPctInput.value || "0") || 0 : 0;
+
+        const pickBanInputs = {};
+        for (let i = 1; i <= 3; i++) {
+          pickBanInputs["pick-" + i] = (qs("#" + prefix + "-picks-" + i) || {}).value || "";
+          pickBanInputs["ban-" + i] = (qs("#" + prefix + "-bans-" + i) || {}).value || "";
+        }
+
+        return {
+          key: teamKey,
+          name: name,
+          playerCount: count,
+          players: players,
+          penaltyPct: penaltyPct,
+          pickBan: pickBanInputs,
+        };
+      }
+
+      function calculateTeamTotals(teamKey) {
+        const list = qs('.player-list[data-team="' + teamKey + '"]');
+        let totalStars = 0;
+        let totalDestruction = 0;
+        let playerCount = 0;
+
+        if (list) {
+          qsa(".player-card", list).forEach(function (card) {
+            const percentInput = qs(".percentage-input", card);
+
+            const stars = qsa(".star-btn.filled", card).length;
+            const percentage = percentInput ? parseFloat(percentInput.value || "0") || 0 : 0;
+
+            totalStars += stars;
+            totalDestruction += percentage;
+            playerCount += 1;
+          });
+        }
+
+        const avgDestruction = playerCount > 0 ? totalDestruction / playerCount : 0;
+        const penaltyPctInput = qs('#penalty-pct-' + teamKey);
+        const penaltyPct = penaltyPctInput ? parseFloat(penaltyPctInput.value || "0") || 0 : 0;
+        const effectiveStars = Math.max(0, totalStars - penaltyPct);
+
+        return {
+          totalStars: totalStars,
+          totalDestruction: avgDestruction,
+          penaltyPct: penaltyPct,
+          effectiveStars: effectiveStars,
+        };
+      }
+
+      function updateStatsDisplay() {
+        const totalsA = calculateTeamTotals("A");
+        const totalsB = calculateTeamTotals("B");
+
+        const fields = {
+          "total-stars-A": Math.round(totalsA.totalStars),
+          "total-stars-B": Math.round(totalsB.totalStars),
+          "total-destruction-A": totalsA.totalDestruction.toFixed(1),
+          "total-destruction-B": totalsB.totalDestruction.toFixed(1),
+          "effective-stars-A": Math.round(totalsA.effectiveStars),
+          "effective-stars-B": Math.round(totalsB.effectiveStars),
+        };
+
+        Object.keys(fields).forEach(function (id) {
+          const el = qs("#" + id);
+          if (el) {
+            el.value = fields[id];
+          }
+        });
+
+        updateWinnerHighlight();
+      }
+
+      function saveState() {
+        const data = {
+          title: (qs("#tournament-title") || {}).textContent || "",
+          matchStatus: (qs("#match-status") || {}).value || "pending",
+          timestamp: (qs("#timestamp") || {}).value || "",
+          notes: (qs("#match-notes") || {}).value || "",
+          teams: {
+            A: collectTeamData("A"),
+            B: collectTeamData("B"),
+          },
+        };
+
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        } catch (err) {
+          console.warn("Could not save match result to localStorage", err);
+        }
+
+        updateStatsDisplay();
+      }
+
+      function loadState() {
+        let stored = null;
+        try {
+          stored = localStorage.getItem(STORAGE_KEY);
+        } catch (err) {
+          console.warn("Could not read from localStorage", err);
+        }
+
+        if (!stored) {
+          ["A", "B"].forEach(function (key) {
+            const prefix = key.toLowerCase();
+            const countInput = qs('#team-' + prefix + '-count');
+            const defaultCount = countInput ? parseInt(countInput.value || "5", 10) || 5 : 5;
+            if (countInput) {
+              countInput.value = defaultCount;
+            }
+            buildPlayerCards(key, defaultCount, []);
+          });
+          updateStatsDisplay();
+          return;
+        }
+
+        let data;
+        try {
+          data = JSON.parse(stored);
+        } catch (err) {
+          console.warn("Could not parse stored match result", err);
+          return;
+        }
+
+        if (data.title && qs("#tournament-title")) {
+          qs("#tournament-title").textContent = data.title;
+        }
+
+        if (qs("#match-status") && data.matchStatus) {
+          qs("#match-status").value = data.matchStatus;
+          updateStatusVisual(data.matchStatus);
+        }
+
+        if (qs("#timestamp") && typeof data.timestamp === "string") {
+          qs("#timestamp").value = data.timestamp;
+        }
+
+        if (qs("#match-notes") && typeof data.notes === "string") {
+          qs("#match-notes").value = data.notes;
+        }
+
+        ["A", "B"].forEach(function (key) {
+          const team = data.teams && data.teams[key] ? data.teams[key] : null;
+          const prefix = key.toLowerCase();
+
+          if (team) {
+            const nameInput = qs('#team-' + prefix + '-name');
+            if (nameInput) {
+              nameInput.value = team.name || (key === "A" ? "Team A" : "Team B");
+            }
+
+            const countInput = qs('#team-' + prefix + '-count');
+            const countValue = team.players && Array.isArray(team.players) && team.players.length
+              ? team.players.length
+              : team.playerCount || 5;
+            if (countInput) {
+              countInput.value = countValue;
+            }
+
+            buildPlayerCards(key, countValue, team.players || []);
+
+            const penaltyPctInput = qs('#penalty-pct-' + key);
+            if (penaltyPctInput) {
+              penaltyPctInput.value = typeof team.penaltyPct === "number" ? team.penaltyPct : "";
+            }
+
+            if (team.pickBan) {
+              for (let i = 1; i <= 3; i++) {
+                const pickEl = qs("#" + prefix + "-picks-" + i);
+                const banEl = qs("#" + prefix + "-bans-" + i);
+                if (pickEl) pickEl.value = team.pickBan["pick-" + i] || "";
+                if (banEl) banEl.value = team.pickBan["ban-" + i] || "";
+              }
+            }
+          } else {
+            const countInput = qs('#team-' + prefix + '-count');
+            const defaultCount = countInput ? parseInt(countInput.value || "5", 10) || 5 : 5;
+            if (countInput) {
+              countInput.value = defaultCount;
+            }
+            buildPlayerCards(key, defaultCount, []);
+          }
+        });
+
+        applyTeamNamesToLabels();
+        updateStatsDisplay();
+      }
+
+      function updateWinnerHighlight() {
+        const cardA = qs("#team-a-card");
+        const cardB = qs("#team-b-card");
+        if (!cardA || !cardB) return;
+
+        cardA.classList.remove("winner", "loser", "tie");
+        cardB.classList.remove("winner", "loser", "tie");
+
+        const totalsA = calculateTeamTotals("A");
+        const totalsB = calculateTeamTotals("B");
+
+        let winnerText = "Awaiting Input";
+        const totalEffectiveStars = totalsA.effectiveStars + totalsB.effectiveStars;
+
+        const statusSelect = qs("#match-status");
+        const isCompleted = statusSelect && statusSelect.value === "completed";
+
+        const teamAName = (qs("#team-a-name") || {}).value || "Team A";
+        const teamBName = (qs("#team-b-name") || {}).value || "Team B";
+
+        if (totalsA.effectiveStars === 0 && totalsB.effectiveStars === 0 && totalsA.totalDestruction === 0 && totalsB.totalDestruction === 0) {
+          winnerText = "Awaiting Input";
+        } else {
+          if (totalsA.effectiveStars > totalsB.effectiveStars) {
+            cardA.classList.add("winner");
+            cardB.classList.add("loser");
+            winnerText = isCompleted ? (teamAName + " Win") : (teamAName + " Leading");
+          } else if (totalsB.effectiveStars > totalsA.effectiveStars) {
+            cardB.classList.add("winner");
+            cardA.classList.add("loser");
+            winnerText = isCompleted ? (teamBName + " Win") : (teamBName + " Leading");
+          } else {
+            if (totalsA.totalDestruction > totalsB.totalDestruction) {
+              cardA.classList.add("winner");
+              cardB.classList.add("loser");
+              winnerText = isCompleted ? (teamAName + " Win via %") : (teamAName + " via %");
+            } else if (totalsB.totalDestruction > totalsA.totalDestruction) {
+              cardB.classList.add("winner");
+              cardA.classList.add("loser");
+              winnerText = isCompleted ? (teamBName + " Win via %") : (teamBName + " via %");
+            } else {
+              cardA.classList.add("tie");
+              cardB.classList.add("tie");
+              winnerText = "Perfect Tie";
+            }
+          }
+        }
+
+        const bar = qs("#winner-bar");
+        if (bar) {
+          let ratio = 0.5;
+          if (totalEffectiveStars > 0) {
+            ratio = totalsA.effectiveStars / totalEffectiveStars;
+          }
+          ratio = Math.max(0.05, Math.min(0.95, ratio));
+          bar.style.width = (ratio * 100).toFixed(1) + "%";
+        }
+
+        const winnerLabel = qs("#winner-label");
+        if (winnerLabel) {
+          winnerLabel.textContent = winnerText;
+        }
+      }
+
+      function updateStatusVisual(status) {
+        const pill = qs("#status-pill");
+        if (!pill) return;
+        pill.classList.remove("status-pending", "status-ongoing", "status-completed");
+        if (status === "ongoing") pill.classList.add("status-ongoing");
+        else if (status === "completed") pill.classList.add("status-completed");
+        else pill.classList.add("status-pending");
+      }
+
+      function applyTeamNamesToLabels() {
+        const teamAName = (qs("#team-a-name") || {}).value || "Team A";
+        const teamBName = (qs("#team-b-name") || {}).value || "Team B";
+
+        const statsALabel = qs("#stats-team-a-label");
+        const statsBLabel = qs("#stats-team-b-label");
+        const legendA = qs("#legend-team-a");
+        const legendB = qs("#legend-team-b");
+        const pbATitle = qs("#pb-team-a-title");
+        const pbBTitle = qs("#pb-team-b-title");
+
+        if (statsALabel) statsALabel.textContent = teamAName;
+        if (statsBLabel) statsBLabel.textContent = teamBName;
+        if (legendA) legendA.textContent = teamAName;
+        if (legendB) legendB.textContent = teamBName;
+        if (pbATitle) pbATitle.textContent = teamAName + " Picks & Bans";
+        if (pbBTitle) pbBTitle.textContent = teamBName + " Picks & Bans";
+      }
+
+      function bindStaticEvents() {
+        const titleEl = qs("#tournament-title");
+        if (titleEl) {
+          titleEl.addEventListener("input", function () {
+            saveState();
+          });
+        }
+
+        const statusSelect = qs("#match-status");
+        if (statusSelect) {
+          statusSelect.addEventListener("change", function () {
+            updateStatusVisual(statusSelect.value);
+            saveState();
+          });
+        }
+
+        const timestampInput = qs("#timestamp");
+        if (timestampInput) {
+          timestampInput.addEventListener("change", saveState);
+        }
+
+        const notes = qs("#match-notes");
+        if (notes) {
+          notes.addEventListener("input", saveState);
+        }
+
+        qsa(".team-name-input").forEach(function (input) {
+          input.addEventListener("input", function () {
+            applyTeamNamesToLabels();
+            saveState();
+          });
+        });
+
+        qsa(".players-count-input").forEach(function (input) {
+          input.addEventListener("change", function () {
+            const id = input.id || "";
+            let teamKey = "A";
+            if (id.indexOf("team-b-") === 0) teamKey = "B";
+            const value = Math.max(1, Math.min(30, parseInt(input.value || "1", 10) || 1));
+            input.value = value;
+            buildPlayerCards(teamKey, value, []);
+            saveState();
+          });
+        });
+
+        qsa(".players-buttons button").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            const teamKey = btn.getAttribute("data-team");
+            const delta = parseInt(btn.getAttribute("data-delta"), 10) || 0;
+            const prefix = teamKey.toLowerCase();
+            const countInput = qs('#team-' + prefix + '-count');
+            if (!countInput) return;
+            let value = parseInt(countInput.value || "1", 10) || 1;
+            value = Math.max(1, Math.min(30, value + delta));
+            countInput.value = value;
+
+            let existingPlayers = [];
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (stored) {
+              try {
+                const data = JSON.parse(stored);
+                if (data.teams && data.teams[teamKey] && Array.isArray(data.teams[teamKey].players)) {
+                  existingPlayers = data.teams[teamKey].players;
+                }
+              } catch (e) {}
+            }
+
+            buildPlayerCards(teamKey, value, existingPlayers);
+            saveState();
+          });
+        });
+
+        qsa(".pick-ban-input").forEach(function (input) {
+          input.addEventListener("input", function () {
+            saveState();
+          });
+        });
+
+        ["A", "B"].forEach(function (key) {
+          const penaltyInput = qs('#penalty-pct-' + key);
+          if (penaltyInput) {
+            penaltyInput.addEventListener("input", function () {
+              saveState();
+            });
+          }
+        });
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        bindStaticEvents();
+        loadState();
+      });
+    })();
+  </script>
+</body>
+</html>
